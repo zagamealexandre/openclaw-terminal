@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { runCommand } from './commands';
+import { stripMarkdown, wrapForTerminal } from './markdown-strip';
 
 export type TerminalLine = {
   id: string;
@@ -16,19 +17,23 @@ type ClientResearchSource = {
   url?: string;
 };
 
-const homePath = '/home/user';
+const homePath = '/';
 
-function formatPrompt(cwd: string) {
-  if (cwd === homePath) return 'user:~$';
-  if (cwd.startsWith(homePath)) {
-    const suffix = cwd.replace(homePath, '~');
-    return `user:${suffix}$`;
-  }
-  return `user:${cwd}$`;
+function extractDiffPatch(text: string): string | null {
+  const match = text.match(/```diff\n([\s\S]*?)```/);
+  return match ? match[1].trim() : null;
+}
+
+function formatPrompt(project: string, cwd: string) {
+  const label = project || 'repo';
+  if (cwd === '/') return `${label}:/ $`;
+  return `${label}:${cwd} $`;
 }
 
 export function useTerminal(userId: string) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
+  const [lastPatch, setLastPatch] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<string>('context-vault');
   const [bridgeStatus, setBridgeStatus] = useState<'online' | 'connecting' | 'offline'>('online');
   const [cwd, setCwd] = useState(homePath);
   const [inputValue, setInputValue] = useState('');
@@ -38,7 +43,7 @@ export function useTerminal(userId: string) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
-  const prompt = useMemo(() => formatPrompt(cwd), [cwd]);
+  const prompt = useMemo(() => formatPrompt(selectedProject, cwd), [cwd, selectedProject]);
 
   const print = useCallback((content: string) => {
     setLines((prev) => [...prev, { id: crypto.randomUUID(), content }]);
@@ -51,6 +56,39 @@ export function useTerminal(userId: string) {
   const clearConsole = useCallback(() => {
     setLines([]);
   }, []);
+
+  const applyLastPatch = useCallback(async () => {
+    if (!lastPatch) {
+      print('no patch to apply');
+      return;
+    }
+
+    const id = crypto.randomUUID();
+    setLines((prev) => [...prev, { id, content: 'APPLYING PATCH…' }]);
+
+    try {
+      const response = await fetch('/api/patch/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patch: lastPatch, projectSlug: selectedProject }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        const message = data?.output || data?.error || 'patch apply failed';
+        setLines((prev) => prev.map((line) => (line.id === id ? { ...line, content: `PATCH FAILED (${data?.stage || 'unknown'}):
+${message}` } : line)));
+        return;
+      }
+
+      setLines((prev) => prev.map((line) => (line.id === id ? { ...line, content: `PATCH APPLIED
+${data.output || ''}`.trim() } : line)));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setLines((prev) => prev.map((line) => (line.id === id ? { ...line, content: `PATCH ERROR:
+${message}` } : line)));
+    }
+  }, [lastPatch, print]);
 
   const updateInput = useCallback((next: string) => {
     setInputValue(next);
@@ -68,11 +106,21 @@ export function useTerminal(userId: string) {
       setLines((prev) => [...prev, { id: streamingLineId, content: 'CONTACTING RABBIES…\n' }]);
 
       const updateStreamingLine = (chunk: string) =>
-        setLines((prev) =>
-          prev.map((line) =>
+        setLines((prev) => {
+          let next = prev.map((line) =>
             line.id === streamingLineId ? { ...line, content: line.content + chunk } : line
-          )
-        );
+          );
+          const updated = next.find((line) => line.id === streamingLineId)?.content ?? '';
+          const patch = extractDiffPatch(updated);
+          if (patch) {
+            setLastPatch(patch);
+          } else {
+            // Make assistant output readable in terminal by stripping common markdown syntax.
+            const display = wrapForTerminal(stripMarkdown(updated));
+            next = next.map((line) => (line.id === streamingLineId ? { ...line, content: display } : line));
+          }
+          return next;
+        });
 
       try {
         const response = await fetch('/api/chat/stream', {
@@ -103,13 +151,15 @@ ${text}`);
             buffer = buffer.slice(boundary + 2);
             raw
               .split('\n')
-              .map((line) => line.trim())
+              .map((line) => line)
               .filter(Boolean)
               .forEach((line) => {
                 if (!line.startsWith('data:')) return;
-                const payload = line.slice(5).trim();
-                if (!payload || payload === '[DONE]' || payload === 'CONTACTING RABBIES…') return;
-                updateStreamingLine(payload + ' ');
+                const rawPayload = line.slice(5);
+                const token = rawPayload.startsWith(' ') ? rawPayload.slice(1) : rawPayload;
+                const check = token.trim();
+                if (!check || check === '[DONE]' || check === 'CONTACTING RABBIES…') return;
+                updateStreamingLine(token);
               });
             boundary = buffer.indexOf('\n\n');
           }
@@ -231,6 +281,8 @@ error: ${messageText}`);
       cwd,
       setCwd,
       userId,
+      selectedProject,
+      setSelectedProject,
       setThemeVar: (key, value) => {
         document.documentElement.style.setProperty(`--${key}`, value);
       },
@@ -303,5 +355,9 @@ error: ${messageText}`);
     handleKeyDown,
     clearConsole,
     bridgeStatus,
+    selectedProject,
+    setSelectedProject,
+    lastPatch,
+    applyLastPatch,
   };
 }

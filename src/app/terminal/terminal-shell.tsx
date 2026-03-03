@@ -18,6 +18,10 @@ export default function TerminalShell({ userId }: { userId: string }) {
     handleKeyDown,
     clearConsole,
     print,
+    lastPatch,
+    applyLastPatch,
+    selectedProject,
+    setSelectedProject,
     bridgeStatus,
   } = useTerminal(userId);
 
@@ -51,6 +55,47 @@ export default function TerminalShell({ userId }: { userId: string }) {
     clearConsole();
   };
 
+  const handleCommit = async () => {
+    const message = window.prompt('Commit message?');
+    if (!message) return;
+
+    print(`COMMITTING: ${message}`);
+    try {
+      const res = await fetch('/api/git/commit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, projectSlug: selectedProject }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        print(`COMMIT FAILED: ${data.output || data.error || 'unknown error'}`);
+        return;
+      }
+      print(`COMMIT OK
+${data.output || ''}`.trim());
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      print(`COMMIT ERROR: ${msg}`);
+    }
+  };
+
+  const handlePush = async () => {
+    print('PUSHING…');
+    try {
+      const res = await fetch('/api/git/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectSlug: selectedProject }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        print(`PUSH FAILED: ${data.output || data.error || 'unknown error'}`);
+        return;
+      }
+      print(`PUSH OK
+${data.output || ''}`.trim());
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      print(`PUSH ERROR: ${msg}`);
+    }
+  };
+
   return (
     <div className="crt-frame terminal-frame" onClick={handleClick}>
       <div className="crt-shell">
@@ -64,6 +109,13 @@ export default function TerminalShell({ userId }: { userId: string }) {
               <div className="terminal-header__status">
                 <button className="terminal-button" type="button" onClick={() => (window.location.href = '/')}>home</button>
                 <button className="terminal-button" type="button" onClick={handleClear}>clear</button>
+                {lastPatch && (
+                  <button className="terminal-button terminal-button--primary" type="button" onClick={applyLastPatch}>
+                    apply patch
+                  </button>
+                )}
+                <button className="terminal-button" type="button" onClick={handleCommit}>commit</button>
+                <button className="terminal-button" type="button" onClick={handlePush}>push</button>
               </div>
             </header>
 
