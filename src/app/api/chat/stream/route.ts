@@ -18,6 +18,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ownerEmail = session.user.email as string;
+
   let payload;
   try {
     payload = await parseIncomingPayload(request);
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   await addChatMessage({
-    ownerEmail: session.user.email,
+    ownerEmail,
     role: "user",
     content: message || "(attachment only)",
     attachments,
@@ -54,7 +56,7 @@ export async function POST(request: Request) {
         let assistantReply = "";
         const history = [
           { role: "system" as const, content: SYSTEM_PROMPT },
-          { role: "user" as const, content: message },
+          { role: "user" as const, content: message ?? "" },
         ];
 
         const completion = await openai.chat.completions.create({
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
           }
         }
 
-        await addChatMessage({ ownerEmail: session.user.email, role: "assistant", content: assistantReply || "(no response)" });
+        await addChatMessage({ ownerEmail, role: "assistant", content: assistantReply || "(no response)" });
         send("[DONE]");
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
