@@ -157,7 +157,7 @@ ${data.output || ''}`.trim());
                 {(tokens.limit / 1000).toFixed(0)}k ({Math.round((tokens.used / tokens.limit) * 100)}%)
               </span>
               <div className="terminal-footer__status">
-                <span>build 1.0 · rabbits</span>
+                <span>build 1.0 · totoro</span>
                 <span>status: {bridgeStatus}</span>
               </div>
             </footer>

@@ -62,10 +62,10 @@ If you want the in-app chat to relay messages through your local OpenClaw gatewa
 
 1. Ensure you can run `openclaw agent --to <target> --message "ping" --deliver` successfully in this repo.
 2. Set `OPENCLAW_CHAT_TO` (and optional `OPENCLAW_CHAT_CHANNEL`, `OPENCLAW_CHAT_REPLY_TO`, etc.) in `.env.local`.
-3. Restart `npm run dev`. The `/api/chat` endpoint now shells out to `openclaw agent ... --json` and returns Rabbies' response straight from your gateway.
+3. Restart `npm run dev`. The `/api/chat` endpoint now shells out to `openclaw agent ... --json` and returns Totoro' response straight from your gateway.
 4. If the CLI bridge fails, the API falls back to OpenAI (when `OPENAI_API_KEY` is set) or returns an actionable error.
 
-> Tip: the chat form now accepts inline image uploads. Images are stored as data URLs in the Postgres row and forwarded to Rabbies through the OpenClaw bridge (with size/type limits enforced by `CHAT_IMAGE_MAX_*`).
+> Tip: the chat form now accepts inline image uploads. Images are stored as data URLs in the Postgres row and forwarded to Totoro through the OpenClaw bridge (with size/type limits enforced by `CHAT_IMAGE_MAX_*`).
 
 ### Database Schema
 

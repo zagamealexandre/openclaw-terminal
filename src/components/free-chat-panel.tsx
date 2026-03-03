@@ -291,7 +291,7 @@ function TerminalLine({
 
   return (
     <div className={`terminal-line terminal-line--${status}`}>
-      <span className="terminal-prompt">{message.role === "user" ? "you" : "rabbies"}@vault$</span>
+      <span className="terminal-prompt">{message.role === "user" ? "you" : "totoro"}@vault$</span>
       <span className="terminal-text">{status === "pending" || status === "idle" ? "…" : displayed}</span>
       {attachmentCount > 0 && status === "done" && (
         <span className="terminal-text attachment-flag">[{attachmentCount} attachment{attachmentCount > 1 ? "s" : ""}]</span>

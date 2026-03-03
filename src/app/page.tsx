@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { SignOutButton } from '@/components/sign-out-button';
 
 const routes = [
-  { href: '/terminal', label: 'rabbies shell' },
+  { href: '/terminal', label: 'totoro shell' },
   { href: '/projects', label: 'projects' },
   { href: '/readme', label: 'readme' },
   { href: '/learnings', label: 'learnings' },

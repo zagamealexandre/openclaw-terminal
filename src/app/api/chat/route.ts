@@ -9,7 +9,7 @@ import { sendViaOpenClaw } from "@/lib/openclaw";
 const openaiApiKey = process.env.OPENAI_API_KEY;
 const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 const MODEL = "gpt-4o-mini";
-const SYSTEM_PROMPT = `You are Rabbies, a product-savvy AI sparring partner with sharp opinions and a friendly tone. Keep replies concise but insightful, mirroring the style used in the Context Vault dashboard.`;
+const SYSTEM_PROMPT = `You are Totoro, a product-savvy AI sparring partner with sharp opinions and a friendly tone. Keep replies concise but insightful, mirroring the style used in the Context Vault dashboard.`;
 
 export async function GET() {
   const session = await getServerSession(authOptions);

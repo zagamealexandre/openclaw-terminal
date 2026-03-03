@@ -26,7 +26,7 @@ const fileTree: FsNode = {
             {
               name: 'about.md',
               type: 'file',
-              content: '# Context Vault\nThis is a retro-inspired shell bridging you and Rabbies. Enjoy the glow.',
+              content: '# Context Vault\nThis is a retro-inspired shell bridging you and Totoro. Enjoy the glow.',
             },
             {
               name: 'projects',
