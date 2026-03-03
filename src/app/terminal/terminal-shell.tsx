@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useTerminal } from './use-terminal';
 import { useTokens } from '@/components/use-tokens';
+import { AsciiArt } from '@/components/ascii-art';
 
 export default function TerminalShell({ userId }: { userId: string }) {
   const {
@@ -16,6 +17,7 @@ export default function TerminalShell({ userId }: { userId: string }) {
     handleInput,
     handleKeyDown,
     clearConsole,
+    print,
     bridgeStatus,
   } = useTerminal(userId);
 
@@ -23,8 +25,25 @@ export default function TerminalShell({ userId }: { userId: string }) {
   const [started, setStarted] = useState(false);
 
   const handleStart = () => {
+    clearConsole();
+
+    const now = new Date();
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    print('WELCOME TO CONTEXT VAULT OS v1.0');
+    print(`HOST: ${host}`);
+    print(`TIME: ${now.toLocaleString()} (${tz})`);
+    print(`MODEL: ${tokens.model} | MODE: ${tokens.mode}`);
+    print(`TOKENS: ${(tokens.used / 1000).toFixed(0)}k/${(tokens.limit / 1000).toFixed(0)}k (${Math.round((tokens.used / tokens.limit) * 100)}%)`);
+    print(`BRIDGE: ${bridgeStatus.toUpperCase()}`);
+    print('>> type help to get started');
+
     setStarted(true);
-    window.setTimeout(() => textareaRef.current?.focus(), 50);
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+      if (viewportRef.current) viewportRef.current.scrollTop = 0;
+    }, 50);
   };
 
   const handleClear = () => {
@@ -48,13 +67,15 @@ export default function TerminalShell({ userId }: { userId: string }) {
               </div>
             </header>
 
-            <main className="terminal-stack" ref={viewportRef}>
+            <main className={started ? "terminal-stack" : "terminal-stack terminal-stack--locked"} ref={viewportRef}>
+              <div className="terminal-screen">
               <section className="terminal-output">
-                {output.map((line) => (
-                  <div key={line.id} className="terminal-line">
-                    {line.content}
-                  </div>
-                ))}
+                {started &&
+                  output.map((line) => (
+                    <div key={line.id} className="terminal-line">
+                      {line.content}
+                    </div>
+                  ))}
 
                 {started && (
                   <div className="terminal-line terminal-line--input">
@@ -66,17 +87,16 @@ export default function TerminalShell({ userId }: { userId: string }) {
               </section>
 
               {!started && (
-                <div className="terminal-splash terminal-splash--image">
-                  <img
-                    className="terminal-splash__image"
-                    src="/ansi/MIST0825.NFO.ANS.png"
-                    alt="Terminal welcome art"
-                  />
-                  <button type="button" className="terminal-button" onClick={handleStart}>
-                    start
-                  </button>
+                <div className="terminal-splash terminal-splash--split">
+                  <div className="terminal-splash__controls">
+                    <button type="button" className="terminal-button terminal-button--primary" onClick={handleStart}>
+                      start
+                    </button>
+                  </div>
+                  <AsciiArt src="/ansi/ascii-art.txt" className="terminal-splash__ascii" />
                 </div>
               )}
+              </div>
             </main>
 
             <footer className="terminal-footer">

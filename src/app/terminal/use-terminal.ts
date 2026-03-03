@@ -16,11 +16,6 @@ type ClientResearchSource = {
   url?: string;
 };
 
-const bootLines: TerminalLine[] = [
-  { id: 'boot1', content: 'WELCOME TO CONTEXT VAULT OS v1.0' },
-  { id: 'boot2', content: '>> type help to get started' },
-];
-
 const homePath = '/home/user';
 
 function formatPrompt(cwd: string) {
@@ -33,7 +28,7 @@ function formatPrompt(cwd: string) {
 }
 
 export function useTerminal(userId: string) {
-  const [lines, setLines] = useState<TerminalLine[]>(bootLines);
+  const [lines, setLines] = useState<TerminalLine[]>([]);
   const [bridgeStatus, setBridgeStatus] = useState<'online' | 'connecting' | 'offline'>('online');
   const [cwd, setCwd] = useState(homePath);
   const [inputValue, setInputValue] = useState('');
@@ -298,6 +293,7 @@ error: ${messageText}`);
 
   return {
     output: lines,
+    print,
     prompt,
     inputValue,
     textareaRef,
