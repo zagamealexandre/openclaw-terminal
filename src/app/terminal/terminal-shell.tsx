@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useTerminal } from './use-terminal';
 import { useTokens } from '@/components/use-tokens';
+import { AnsiArt } from '@/components/ansi-art';
 
 export default function TerminalShell({ userId }: { userId: string }) {
   const {
@@ -75,16 +76,7 @@ export default function TerminalShell({ userId }: { userId: string }) {
                       start
                     </button>
                   </div>
-                  <pre className="terminal-splash__portrait" aria-hidden>
-{`      ____
-    /____\\
-    | ._.|
-    | (_) |
-    |_____|
-     /| |\\
-    /_|_|_\\
-`}
-                  </pre>
+                  <AnsiArt src="/ansi/MIST0825.NFO.ANS" className="terminal-splash__ansi" />
                 </div>
               )}
             </main>
