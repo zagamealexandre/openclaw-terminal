@@ -858,9 +858,19 @@ body::before {
   width: min(520px, 100%);
   max-height: 340px;
   object-fit: cover;
-  object-position: top center;
+  object-position: bottom center;
   border-radius: 22px;
   border: 1px solid rgba(255, 210, 119, 0.25);
   background: rgba(0, 0, 0, 0.35);
   box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.65);
+}
+
+.terminal-splash--image {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+}
+
+.terminal-splash--image .terminal-button {
+  margin-top: 1rem;
 }

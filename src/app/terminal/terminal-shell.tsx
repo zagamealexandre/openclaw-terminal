@@ -66,16 +66,15 @@ export default function TerminalShell({ userId }: { userId: string }) {
               </section>
 
               {!started && (
-                <div className="terminal-splash">
-                  <div className="terminal-splash__text">
-                    <p className="terminal-splash__eyebrow">WELCOME</p>
-                    <h2>RABBIES OS</h2>
-                    <p>Press start to begin a chat session.</p>
-                    <button type="button" className="terminal-button" onClick={handleStart}>
-                      start
-                    </button>
-                  </div>
-                  <img className="terminal-splash__image" src="/ansi/MIST0825.NFO.ANS.png" alt="Terminal welcome art" />
+                <div className="terminal-splash terminal-splash--image">
+                  <img
+                    className="terminal-splash__image"
+                    src="/ansi/MIST0825.NFO.ANS.png"
+                    alt="Terminal welcome art"
+                  />
+                  <button type="button" className="terminal-button" onClick={handleStart}>
+                    start
+                  </button>
                 </div>
               )}
             </main>
